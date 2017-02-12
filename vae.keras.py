@@ -77,7 +77,8 @@ X_generated = _f( P ) # obtain a function that gives ~x = f(X)
 def ELBO(x_true, x_pred):
 	# since the feature space is not binary we calculate the pixelwise
 	# distance between the two as the error
-	reconstruction_loss = K.sum(K.binary_crossentropy(x_true, x_pred),axis=1)
+	# reconstruction_loss = K.sum(K.binary_crossentropy(x_true, x_pred),axis=1)
+	reconstruction_loss = K.sum(K.square(x_true - x_pred), axis=-1)
 	
 	# Kullback-Leibler divergence between a normal with mean mu and sigma
 	# from a normal with mean 0 and sigma 1
