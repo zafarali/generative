@@ -24,11 +24,20 @@ L_SIZE = 2 # size of the latent layer
 EPS = 1 # standard deviation of the sampler
 EPOCHS = 50 # number of training steps
 NUMERICAL_STABILIZATION = 1e-6
+NOISY = True # we want to add noise to our images before feeding them in.
+NOISE_FACTOR = 0.1 # the factor of noise to add.
 
 """
 	ENCODER LAYERS
 """
-X = layers.Input( batch_shape = ( BATCH_SIZE, M ) ) # input layer
+X_in = layers.Input( batch_shape = ( BATCH_SIZE, M ) ) # input layer
+
+if NOISY:
+	# only active at training time so we do not worry about
+	# trying to not include this during prediction.
+	X = layers.noise.GaussianNoise(NOISE_FACTOR)( X_in )
+else:
+	X = X_in
 
 # gives the most likely z's for a given X Q(z|X)
 Q = layers.Dense( output_dim = H_SIZE, activation = 'relu' )( X )
@@ -91,14 +100,16 @@ callbacks = [TensorBoard(log_dir='./logs', histogram_freq=0, write_graph=True, w
 			EarlyStopping(monitor='val_loss', patience=1, verbose=1, mode='auto')]
 
 
+
 # flattening the dataset
+# these will act as the inputs
 X_train = (X_train.astype('float32') / 255).reshape(-1, M)
 X_test = (X_test.astype('float32') / 255).reshape(-1, M)
 
 
-adam = Adam(lr=0.01)
+adam = Adam(lr=0.005)
 
-VAE = Model(X, X_generated)
+VAE = Model(X_in, X_generated)
 VAE.compile(optimizer=adam, loss=ELBO)
 
 try:
@@ -108,7 +119,7 @@ except KeyboardInterrupt as e:
 	print('Training Stopped Early')
 
 # encode the images into a latent space mean.
-ENCODER = Model(X, Z_MEAN)
+ENCODER = Model(X_in, Z_MEAN)
 
 # decode latent space information into images
 decoder_in = layers.Input(shape=(L_SIZE,))
