@@ -16,6 +16,7 @@ import utils
 # obtain the data
 (X_train, Y_train), (X_test, Y_test) = mnist.load_data()
 
+print(Y_train.shape)
 
 M = X_train[0].shape[0] * X_train[0].shape[1] # feature size
 BATCH_SIZE = 100 # batch size to use during training
@@ -128,13 +129,17 @@ X_generated = _f(P) # ~x = f(z)
 
 GENERATOR = Model(decoder_in, X_generated)
 
-f, ax = utils.data_on_latent_space(ENCODER, X_test, Y_test, batch_size=BATCH_SIZE)
+
+x_encoded = ENCODER.predict( X_train , batch_size=BATCH_SIZE )
+
+
+f, ax = utils.data_on_latent_space( x_encoded, Y_train )
 # f.colorbar()
 
-f.savefig('latent_viz.pdf')
+f.savefig('latent_viz.vae.pdf')
 
 f, ax = utils.manifold_2D(GENERATOR)
-f.savefig('manifold.pdf')
+f.savefig('manifold.vae.pdf')
 
 
 
